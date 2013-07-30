@@ -31,10 +31,10 @@ HFDragMe = {
     initMouseY: null,
     defaults: {
         cursor: "move",
-        changeZIndex: true,
+        changeZIndex: false,
         zIndex: 1000002,
         opacity: 0.75,
-        delay: 20
+        //delay: 20
     },
     /**
      * Initial Setup
