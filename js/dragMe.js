@@ -85,20 +85,17 @@ HFDragMe = {
         handle.draggableItem   = elem;
         handle.style.cursor = HFDragMe.displayOptions.cursor;
         
-        if ((elem.style.position === "absolute" || elem.style.position === "fixed") && 
-                elem.style.left !== "" && elem.style.top !== "") {
-            initialPosition.x = parseInt(elem.style.left, 10);
-            initialPosition.y = parseInt(elem.style.top, 10);
-        } else {
-            initialPosition = HFUtils.offset(elem);
-            
-            elem.initialPositionX = initialPosition.left;
-            elem.initialPositionY = initialPosition.top;
-            
+        initialPosition = HFUtils.offset(elem);
+        
+        elem.initialPositionX = initialPosition.left;
+        elem.initialPositionY = initialPosition.top;
+        
+        if (elem.style.position !== "absolute" && elem.style.position !== "fixed") {
             elem.style.position = "absolute";
-            elem.style.left = initialPosition.left + "px";
-            elem.style.top = initialPosition.top + "px";
         }
+
+        elem.style.left = initialPosition.left + "px";
+        elem.style.top = initialPosition.top + "px";
         elem.originalOpacity = elem.style.opacity;
         
         // Attach Events
@@ -134,6 +131,10 @@ HFDragMe = {
                 HFDragMe.initMouseX = e.clientX;
                 HFDragMe.initMouseY = e.clientY;
                 HFDragMe.itemDragging = dragItem;
+                
+                if (typeof HFDragMe.displayOptions.callback !== "undefined") {
+                    HFDragMe.displayOptions.callback();
+                }
 
                 // Attach Events
                 HFUtils.listen("mousemove", document, HFDragMe.onMouseMove);
