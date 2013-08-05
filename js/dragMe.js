@@ -80,13 +80,18 @@ HFDragMe = {
      * @param {string || object} handle The handle that is used to drag the element
      **/  
     makeDraggable: function(elem, handle) {
-        var initialPosition = {x: 0, y: 0};
+        var initialPosition = {x: 0, y: 0},
+            onlyBox = false;
         
         handle.draggableItem   = elem;
         handle.style.cursor = HFDragMe.displayOptions.cursor;
-        
-        initialPosition = HFUtils.offset(elem);
-        
+
+        if (elem.style.position === "fixed") {
+            onlyBox = true;
+        }
+            
+        initialPosition = HFUtils.offset(elem, onlyBox);
+
         elem.initialPositionX = initialPosition.left;
         elem.initialPositionY = initialPosition.top;
         
@@ -135,13 +140,27 @@ HFDragMe = {
                 if (typeof HFDragMe.displayOptions.callback !== "undefined") {
                     HFDragMe.displayOptions.callback();
                 }
-
                 // Attach Events
                 HFUtils.listen("mousemove", document, HFDragMe.onMouseMove);
                 HFUtils.listen("mouseup", document, HFDragMe.onMouseUp);
+                HFUtils.listen("keydown", document, HFDragMe.onKeyPress);
             }
         }
         
+        HFUtils.preventDefaultPropagation(e);
+    },
+    /**
+     * Listen to keys pressed
+     * ESC stops the dragging
+     * 
+     * @param {object} e The Event
+     **/ 
+    onKeyPress : function(e) {
+        e = HFUtils.normalizeEvent(e);
+        var keycode = (e.which) ? e.which : e.keyCode;
+        if (keycode === 27) {
+            HFDragMe.onMouseUp(e);
+        }
         HFUtils.preventDefaultPropagation(e);
     },
     /**
@@ -180,6 +199,7 @@ HFDragMe = {
         // Detach Events
         HFUtils.stopListening("mousemove", document, null);
         HFUtils.stopListening("mouseup", document, null);
+        HFUtils.stopListening("keypress", document, null);
 
         HFUtils.preventDefaultPropagation(e);
     },
@@ -232,7 +252,7 @@ HFUtils = {
      * 
      * @param {object} elem The Element
      **/ 
-    offset: function (elem) {
+    offset: function (elem, onlyBox) {
         var body = document.body,
             win = document.defaultView,
             docElem = document.documentElement,
@@ -249,10 +269,14 @@ HFUtils = {
         body.removeChild(box);
         box = elem.getBoundingClientRect();
         
-        clientTop  = docElem.clientTop  || body.clientTop  || 0,
-        clientLeft = docElem.clientLeft || body.clientLeft || 0,
-        scrollTop  = win.pageYOffset || isBoxModel && docElem.scrollTop  || body.scrollTop,
-        scrollLeft = win.pageXOffset || isBoxModel && docElem.scrollLeft || body.scrollLeft;
+        if (typeof onlyBox !== "undefined" && onlyBox) {
+            clientTop  = clientLeft = scrollTop = scrollLeft = 0;
+        } else {
+            clientTop  = docElem.clientTop  || body.clientTop  || 0,
+            clientLeft = docElem.clientLeft || body.clientLeft || 0,
+            scrollTop  = win.pageYOffset || isBoxModel && docElem.scrollTop  || body.scrollTop,
+            scrollLeft = win.pageXOffset || isBoxModel && docElem.scrollLeft || body.scrollLeft;
+        }
     
         return {
             top : box.top  + scrollTop  - clientTop,
